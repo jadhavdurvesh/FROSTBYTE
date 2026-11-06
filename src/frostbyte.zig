@@ -5,3 +5,5 @@ pub const Header = protocol.Header;
 pub const ProtocolError = protocol.ProtocolError;
 pub const encode = protocol.encode;
 pub const decode = protocol.decode;
+pub const stream_decoder = @import("stream_decoder.zig");
+pub const StreamDecoder = stream_decoder.StreamDecoder;
