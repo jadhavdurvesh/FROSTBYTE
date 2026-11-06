@@ -2,6 +2,20 @@ const std = @import("std");
 const frostbyte = @import("frostbyte");
 const MAX_PAYLOAD = frostbyte.protocol.DEFAULT_MAX_PAYLOAD;
 
+fn handleFrame(allocator: std.mem.Allocator, reader: anytype, writer: anytype, header: *const [frostbyte.protocol.HEADER_LEN]u8) !void {
+    const payload_len = std.mem.readInt(u32, header[8..12], .big);
+    if (payload_len > MAX_PAYLOAD) return error.PayloadTooLarge;
+    const total_len = frostbyte.protocol.HEADER_LEN + @as(usize, payload_len);
+    const packet = try allocator.alloc(u8, total_len);
+    defer allocator.free(packet);
+    @memcpy(packet[0..frostbyte.protocol.HEADER_LEN], header);
+    try reader.readNoEof(packet[frostbyte.protocol.HEADER_LEN..]);
+    const frame = try frostbyte.decode(packet, MAX_PAYLOAD);
+    const response = try frostbyte.encode(allocator, frame.header.message_type, frame.header.flags, frame.payload);
+    defer allocator.free(response);
+    try writer.writeAll(response);
+}
+
 fn serveConnection(stream: std.net.Stream) !void {
     defer stream.close();
     const reader = stream.reader();
@@ -13,17 +27,7 @@ fn serveConnection(stream: std.net.Stream) !void {
             if (err == error.EndOfStream) return;
             return err;
         };
-        const payload_len = std.mem.readInt(u32, header[8..12], .big);
-        if (payload_len > MAX_PAYLOAD) return error.PayloadTooLarge;
-        const total_len = frostbyte.protocol.HEADER_LEN + @as(usize, payload_len);
-        const packet = try allocator.alloc(u8, total_len);
-        defer allocator.free(packet);
-        @memcpy(packet[0..frostbyte.protocol.HEADER_LEN], &header);
-        try reader.readNoEof(packet[frostbyte.protocol.HEADER_LEN..]);
-        const frame = try frostbyte.decode(packet, MAX_PAYLOAD);
-        const response = try frostbyte.encode(allocator, frame.header.message_type, frame.header.flags, frame.payload);
-        defer allocator.free(response);
-        try writer.writeAll(response);
+        try handleFrame(allocator, reader, writer, &header);
     }
 }
 
@@ -38,6 +42,7 @@ pub fn main() !void {
     std.log.info("FROSTBYTE framed TCP echo server listening on port {d}", .{port});
     while (true) {
         const connection = try server.accept();
-        serveConnection(connection.stream) catch |err| std.log.warn("connection closed: {s}", .{@errorName(err)});
+        serveConnection(connection.stream) catch |err|
+            std.log.warn("connection closed: {s}", .{@errorName(err)});
     }
 }
