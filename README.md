@@ -12,6 +12,7 @@ FROSTBYTE explores bounded binary parsing, explicit memory ownership, fixed-capa
 - Zero-copy payload views from decoded packets
 - Configurable maximum payload limit (1 MiB default)
 - Fixed-capacity ring buffer with wraparound-safe reads and writes
+- Incremental decoder for split and coalesced TCP frames
 - TCP server that reads complete frames from a byte stream
 - Zig unit tests and GitHub Actions CI
 
