@@ -13,7 +13,7 @@
 - [x] Wraparound-safe reads and writes
 - [x] Framed TCP echo server
 - [x] Protocol and ring-buffer unit tests
-- [ ] Incremental decoder for arbitrary TCP chunks
+- [x] Incremental decoder for arbitrary TCP chunks
 - [ ] Partial-write queue and backpressure policy
 - [ ] Per-connection resource limits and idle timeout
 
