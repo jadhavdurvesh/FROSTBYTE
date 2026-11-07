@@ -37,3 +37,8 @@
 - [x] Bounded outbound byte queue with partial-write retention and backpressure
 
 - [x] Partial-write and zero-progress writer tests for outbound queue
+
+- [x] Multi-connection TCP server using one detached worker thread per accepted client
+
+The current threaded server has no global connection cap, graceful cancellation, idle timeout, or TLS. Keep it for local transport experiments, not untrusted production exposure.
+
