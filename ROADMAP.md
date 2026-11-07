@@ -33,3 +33,5 @@
 
 - [x] Incremental decoder feed reports partial acceptance and enforces bounded input buffering
 - [x] Pending borrowed frames prevent further writes until consumed
+
+- [x] Bounded outbound byte queue with partial-write retention and backpressure
