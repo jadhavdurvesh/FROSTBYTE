@@ -37,7 +37,7 @@ A decoded frame's payload borrows from the input packet. Callers must not retain
 
 ## Future design questions
 
-- Incremental parsing should support fragmented headers and payloads without repeated copying.
+- The incremental decoder supports fragmented headers and payloads in caller-supplied bounded storage; future work should benchmark compaction and throughput.
 - Backpressure should bound queued outbound bytes per connection.
 - Multi-connection concurrency should define ownership and cancellation rules before introducing shared mutable state.
 - Benchmarks must report compiler version, optimization mode, hardware, payload sizes, and methodology. No performance claim should be published without reproducible measurements.
