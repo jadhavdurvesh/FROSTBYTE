@@ -45,3 +45,7 @@ A decoded frame's payload borrows from the input packet. Callers must not retain
 ## Incremental stream decoder and backpressure
 
 The incremental decoder accepts arbitrary input chunks into caller-supplied fixed-capacity storage. `feed` returns the exact number of bytes accepted; callers must retain and retry any unaccepted suffix. When the buffer is full it returns `BufferFull`, and while a borrowed frame is pending it returns `FramePending` to prevent invalidating the borrowed payload. This is bounded inbound buffering, not an outbound socket write queue.
+
+## Bounded outbound writes
+
+The reusable `WriteQueue` wraps caller-owned fixed-capacity storage. Enqueue returns the accepted byte count so callers can apply backpressure. Flush drains contiguous ring-buffer segments through a writer, preserves unwritten bytes after a partial write, and reports a zero-progress writer as `WriteZero`. The queue is not internally synchronized; one connection owner must serialize enqueue and flush operations. It does not implement socket readiness polling, connection limits, or TLS.
