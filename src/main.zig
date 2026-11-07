@@ -31,6 +31,11 @@ fn serveConnection(stream: std.net.Stream) !void {
     }
 }
 
+fn serveThread(stream: std.net.Stream) void {
+    serveConnection(stream) catch |err|
+        std.log.warn("connection closed: {s}", .{@errorName(err)});
+}
+
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
     const args = try std.process.argsAlloc(allocator);
@@ -42,7 +47,11 @@ pub fn main() !void {
     std.log.info("FROSTBYTE framed TCP echo server listening on port {d}", .{port});
     while (true) {
         const connection = try server.accept();
-        serveConnection(connection.stream) catch |err|
-            std.log.warn("connection closed: {s}", .{@errorName(err)});
+        const thread = std.Thread.spawn(.{}, serveThread, .{connection.stream}) catch |err| {
+            connection.stream.close();
+            std.log.warn("could not start connection worker: {s}", .{@errorName(err)});
+            continue;
+        };
+        thread.detach();
     }
 }
