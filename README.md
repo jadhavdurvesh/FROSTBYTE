@@ -73,3 +73,5 @@ See ROADMAP.md and docs/design.md.
 ## License
 
 MIT.
+
+The outbound queue's tests cover bounded capacity, partial writes, retained byte order, and zero-progress writer handling. The caller remains responsible for socket readiness and serialized access.
