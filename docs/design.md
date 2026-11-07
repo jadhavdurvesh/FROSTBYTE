@@ -41,3 +41,7 @@ A decoded frame's payload borrows from the input packet. Callers must not retain
 - Backpressure should bound queued outbound bytes per connection.
 - Multi-connection concurrency should define ownership and cancellation rules before introducing shared mutable state.
 - Benchmarks must report compiler version, optimization mode, hardware, payload sizes, and methodology. No performance claim should be published without reproducible measurements.
+
+## Incremental stream decoder and backpressure
+
+The incremental decoder accepts arbitrary input chunks into caller-supplied fixed-capacity storage. `feed` returns the exact number of bytes accepted; callers must retain and retry any unaccepted suffix. When the buffer is full it returns `BufferFull`, and while a borrowed frame is pending it returns `FramePending` to prevent invalidating the borrowed payload. This is bounded inbound buffering, not an outbound socket write queue.
