@@ -7,3 +7,5 @@ pub const encode = protocol.encode;
 pub const decode = protocol.decode;
 pub const stream_decoder = @import("stream_decoder.zig");
 pub const StreamDecoder = stream_decoder.StreamDecoder;
+pub const write_queue = @import("write_queue.zig");
+pub const WriteQueue = write_queue.WriteQueue;
