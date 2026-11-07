@@ -42,3 +42,5 @@
 
 The current threaded server has no global connection cap, graceful cancellation, idle timeout, or TLS. Keep it for local transport experiments, not untrusted production exposure.
 
+
+- [ ] Add bounded concurrent connection admission, idle deadlines and graceful shutdown before exposing the server beyond local experiments
