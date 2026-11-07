@@ -85,3 +85,27 @@ test "incremental decoder separates coalesced packets" {
     try std.testing.expectEqualStrings("two", b.payload);
     decoder.consumeFrame();
 }
+
+
+test "feed reports partial acceptance and applies bounded backpressure" {
+    var storage: [20]u8 = undefined;
+    var decoder = StreamDecoder.init(&storage, 64);
+    const first = try decoder.feed("12345678901234567890EXTRA");
+    try std.testing.expectEqual(@as(usize, 20), first);
+    try std.testing.expectError(error.BufferFull, decoder.feed("x"));
+    try std.testing.expectEqual(@as(usize, 20), decoder.buffered());
+}
+
+test "feed rejects additional input while a frame is borrowed" {
+    const allocator = std.testing.allocator;
+    const packet = try protocol.encode(allocator, 3, 0, "borrowed");
+    defer allocator.free(packet);
+    var storage: [64]u8 = undefined;
+    var decoder = StreamDecoder.init(&storage, 32);
+    _ = try decoder.feed(packet);
+    const frame = (try decoder.nextFrame()).?;
+    try std.testing.expectEqualStrings("borrowed", frame.payload);
+    try std.testing.expectError(error.FramePending, decoder.feed("more"));
+    decoder.consumeFrame();
+    try std.testing.expectEqual(@as(usize, 0), decoder.buffered());
+}
