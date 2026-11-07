@@ -30,3 +30,6 @@
 - [ ] TLS integration boundary
 - [ ] Structured metrics and tracing
 - [ ] Protocol compatibility and version negotiation tests
+
+- [x] Incremental decoder feed reports partial acceptance and enforces bounded input buffering
+- [x] Pending borrowed frames prevent further writes until consumed
