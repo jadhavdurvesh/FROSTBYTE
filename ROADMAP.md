@@ -35,3 +35,5 @@
 - [x] Pending borrowed frames prevent further writes until consumed
 
 - [x] Bounded outbound byte queue with partial-write retention and backpressure
+
+- [x] Partial-write and zero-progress writer tests for outbound queue
