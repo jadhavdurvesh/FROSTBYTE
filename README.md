@@ -75,3 +75,5 @@ See ROADMAP.md and docs/design.md.
 MIT.
 
 The outbound queue's tests cover bounded capacity, partial writes, retained byte order, and zero-progress writer handling. The caller remains responsible for socket readiness and serialized access.
+
+The TCP development server now handles accepted clients on detached worker threads, so a slow client no longer blocks acceptance of other connections. There is not yet a global connection cap, idle timeout, graceful shutdown coordinator, or TLS boundary; do not expose it directly to untrusted networks.
