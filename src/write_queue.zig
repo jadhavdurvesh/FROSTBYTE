@@ -56,3 +56,42 @@ test "outbound queue accepts more bytes after draining" {
     const count = queue.ring.read(&remaining);
     try std.testing.expectEqualStrings("45abc", remaining[0..count]);
 }
+
+test "flush retains unwritten bytes after a partial socket write" {
+    const LimitedWriter = struct {
+        output: []u8,
+        used: usize = 0,
+        limit: usize,
+        pub fn write(self: *@This(), bytes: []const u8) !usize {
+            const count = @min(bytes.len, self.limit);
+            @memcpy(self.output[self.used .. self.used + count], bytes[0..count]);
+            self.used += count;
+            return count;
+        }
+    };
+    var storage: [8]u8 = undefined;
+    var queue = WriteQueue.init(&storage);
+    _ = queue.enqueue("abcdef");
+    var output: [8]u8 = undefined;
+    var writer = LimitedWriter{ .output = &output, .limit = 2 };
+    try std.testing.expectEqual(@as(usize, 2), try queue.flush(&writer));
+    try std.testing.expectEqual(@as(usize, 4), queue.pending());
+    try std.testing.expectEqualStrings("ab", output[0..2]);
+    try std.testing.expectEqual(@as(usize, 2), try queue.flush(&writer));
+    try std.testing.expectEqual(@as(usize, 2), queue.pending());
+    try std.testing.expectEqual(@as(usize, 2), try queue.flush(&writer));
+    try std.testing.expectEqual(@as(usize, 0), queue.pending());
+    try std.testing.expectEqualStrings("abcdef", output[0..6]);
+}
+
+test "flush rejects a writer that makes no progress" {
+    const ZeroWriter = struct {
+        pub fn write(_: *@This(), _: []const u8) !usize { return 0; }
+    };
+    var storage: [4]u8 = undefined;
+    var queue = WriteQueue.init(&storage);
+    _ = queue.enqueue("data");
+    var writer = ZeroWriter{};
+    try std.testing.expectError(error.WriteZero, queue.flush(&writer));
+    try std.testing.expectEqual(@as(usize, 4), queue.pending());
+}
